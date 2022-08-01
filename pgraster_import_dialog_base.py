@@ -127,7 +127,19 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
             connection_info = "dbname='{0}' host='{1}' port={2}".format(DBNAME,  DBHOST,  DBPORT)
             
             if DBUSER == 'NULL' or DBUSER == '':
-                (success, user, password) = QgsCredentials.instance().get(connection_info, None, None)
+                QgsMessageLog.logMessage("VErbindung probieren", 'Postgis Raster Import', level=Qgis.Info)
+                try:
+                    conn = psycopg2.connect(connection_info)
+                    if conn:
+                        (success, user, password) = (True, '', '')
+                        conn.close()
+                        QgsMessageLog.logMessage("Verbindung ohne Auth bekommen", 'Postgis Raster Import', level=Qgis.Info)
+                    else:
+                        success = False
+                        QgsMessageLog.logMessage("keine Verbindung ohne Auth bekommen", 'Postgis Raster Import', level=Qgis.Info)
+                except:
+                    QgsMessageLog.logMessage("Verbindung ohne Auth -> Exception", 'Postgis Raster Import', level=Qgis.Info)
+                    (success, user, password) = QgsCredentials.instance().get(connection_info, None, None)
             else:
                 (success, user, password) = QgsCredentials.instance().get(connection_info, str(DBUSER), None)
                 
@@ -138,13 +150,14 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
 #            QgsCredentials.instance().put(connection_info, user, password)
             DBUSER = user
             DBPASSWD = password
-
+        
         connection_info = "dbname='{0}' host='{1}' port={2} user='{3}' password='{4}'".format(DBNAME,  DBHOST,  DBPORT,  DBUSER,  DBPASSWD)
+        QgsMessageLog.logMessage(f"Verbindung ist fertig: {connection_info}", 'Postgis Raster Import', level=Qgis.Info)
         
         try:
             conn = psycopg2.connect(connection_info)
         except:
-            QMessageBox.critical(None,  self.tr('Error'),  str(sys.exc_info()[1]))
+            QMessageBox.critical(None,  self.tr('Error X'),  str(sys.exc_info()[1]))
             return None
         
         self.cmb_schema.clear()
