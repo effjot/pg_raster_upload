@@ -241,14 +241,14 @@ class PGRasterImportDialog(QDialog, FORM_CLASS):
         
     
     def raster_upload(self,  conn):
-#     If schema doesn't exists in DB create a new schema        
+        # If schema doesn't exists in DB create a new schema
+        # Should not happen, because combobox is no longer editable
         if self.cmb_schema.currentText() not in self.db_schemas(conn):
             sql = """
             create schema {0}
             """.format(self.cmb_schema.currentText())
             cursor = conn.cursor()
-            cursor.execute(sql)
-        
+            cursor.execute(sql)        
         
         layer = self.cmb_map_layer.currentLayer()
         if layer.dataProvider().name() == 'gdal':
